@@ -8,9 +8,9 @@ class APIFeatures {
     // 1. Filtering
     const queryObj = { ...this.queryString };
 
-    const excludedFiels = ['page', 'sort', 'limit', 'fields'];
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
 
-    excludedFiels.forEach(el => delete queryObj[el]);
+    excludedFields.forEach(el => delete queryObj[el]);
 
     // 1. Advanced Filtering
     let queryStr = JSON.stringify(queryObj);
@@ -52,6 +52,5 @@ class APIFeatures {
     return this;
   }
 }
-
 
 module.exports = APIFeatures;
