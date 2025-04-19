@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const validator = require('validator');
+// const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -13,8 +13,8 @@ const tourSchema = new mongoose.Schema(
       minlength: [
         10,
         'A tour name must have greater or equal than 10 characters'
-      ],
-      validate: [validator.isAlpha, 'Tour name must only contain characters']
+      ]
+      // validate: [validator.isAlpha, 'Tour name must only contain characters']
     },
 
     slug: String,
@@ -33,7 +33,7 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A tour must have a difficulty'],
       enum: {
         values: ['easy', 'medium', 'difficult'],
-        message: 'Difficulty is either: '
+        message: 'Difficulty is either: easy, medium, difficult'
       }
     },
     ratingsAverage: {
@@ -129,7 +129,6 @@ tourSchema.post(/^find/, function(docs, next) {
 
 tourSchema.pre('aggregate', function(next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
   next();
 });
 const Tour = mongoose.model('Tour', tourSchema);
