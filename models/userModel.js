@@ -21,8 +21,6 @@ const userSchema = mongoose.Schema({
     enum: ['user', 'guide', 'lead-guide', 'admin'],
     default: 'user'
   },
-
-  passwordChangedAt: Date,
   password: {
     type: String,
     required: [true, 'Please provide password'],
@@ -41,6 +39,7 @@ const userSchema = mongoose.Schema({
       message: 'Passwords are not the same!'
     }
   },
+  passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date
 });
@@ -53,6 +52,13 @@ userSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, 12);
   this.passwordConfirm = undefined;
 
+  next();
+});
+
+userSchema.pre('save', function(next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000; //ensure that the password is always created after token has been changed
   next();
 });
 
