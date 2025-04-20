@@ -15,10 +15,13 @@ const userSchema = mongoose.Schema({
     validate: [validator.isEmail, 'Please provide valid email']
   },
   photo: String,
+
+  passwordChangedAt: Date,
   password: {
     type: String,
     required: [true, 'Please provide password'],
-    minlength: 8
+    minlength: 8,
+    select: false
   },
   passwordConfirm: {
     type: String,
@@ -44,6 +47,25 @@ userSchema.pre('save', async function(next) {
 
   next();
 });
+
+// Instance Method
+userSchema.methods.correctPassword = async function(
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimeStamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    return JWTTimestamp < changedTimeStamp;
+  }
+  return false;
+};
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
