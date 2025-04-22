@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const User = require('./userModel');
+// const User = require('./userModel');
 // const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
@@ -114,7 +114,7 @@ const tourSchema = new mongoose.Schema(
         day: Number
       }
     ],
-    guides: Array
+    guides: { type: mongoose.Schema.ObjectId, ref: 'User' }
   },
   {
     toJSON: { virtuals: true },
@@ -125,16 +125,23 @@ tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
 });
 
+// Virtual Populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour', //name of property you are trying to modify in the other model holding the model id
+  localField: '_id' // The name of the local field holding the id of the model value
+});
+
 // DOCUMENT MIDDLEWARE: runs before .save() and .create() hook
 tourSchema.pre('save', function(next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
 
-tourSchema.pre('save', async function(next) {
-  const guidesPromises = this.guides.map(async id => await User.findById(id));
-  this.guides = await Promise.all(guidesPromises);
-});
+// tourSchema.pre('save', async function(next) {
+//   const guidesPromises = this.guides.map(async id => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+// });
 
 // Query Middleware
 
@@ -146,8 +153,16 @@ tourSchema.pre(/^find/, function(next) {
   next();
 });
 
-tourSchema.post(/^find/, function(docs, next) {
-  console.log(`Query Took ${Date.now() - this.start}`);
+// tourSchema.post(/^find/, function(docs, next) {
+//   console.log(`Query Took ${Date.now() - this.start}`);
+//   next();
+// });
+
+tourSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt'
+  });
   next();
 });
 
